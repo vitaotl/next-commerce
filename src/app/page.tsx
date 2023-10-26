@@ -10,8 +10,7 @@ async function getProducts() {
     }
     throw new Error(`Erro na solicitação: ${res.status}`)
   } catch (error) {
-    console.error(error)
-    // Você pode tratar o erro de outras maneiras, como retornar um objeto de erro personalizado.
+    console.log(error)
   }
 }
 
