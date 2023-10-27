@@ -1,17 +1,31 @@
 import { ProductType } from "@/types/ProductType"
 import Product from "./components/Product"
+import Stripe from "stripe"
 
-async function getProducts() {
-  const url = "https://fakestoreapi.com/products"
-  try {
-    const res = await fetch(url)
-    if (res.ok) {
-      return res.json()
-    }
-    throw new Error(`Erro na solicitação: ${res.status}`)
-  } catch (error) {
-    console.log(error)
-  }
+async function getProducts(): Promise<ProductType[]> {
+  const stripe = new Stripe('sk_test_WIWUW8uLmqzeiFefHFmnHKak009uYxRoVq', {
+    apiVersion: "2023-10-16"
+  })
+
+  const products = await stripe.products.list()
+  const formattedProducts = await Promise.all(
+    products.data.map(async (product) => {
+      const price = await stripe.prices.list({
+        product: product.id
+      })
+
+      return {
+        id: product.id,
+        price: price.data[0].unit_amount,
+        name: product.name,
+        image: product.images[0],
+        description: product.description,
+        currency: price.data[0].currency
+      }
+    })
+  )
+
+  return formattedProducts
 }
 
 export default async function Home() {
